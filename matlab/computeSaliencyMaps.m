@@ -14,11 +14,11 @@ for iDb = 1:length(datasets)
         image = imread(fullfile('..', 'data', db, images{iImage}));
         
         % compute the saliency map
-        saliencyMap = saliencyAlgorithmImprove(image);
+        saliencyMap = saliencyAlgorithm(image);
         
         % resize the saliency map
         [height, width, ~] = size(image);
-        imresize(saliencyMap, [height, width]);
+        saliencyMap = imresize(saliencyMap, [height, width]);
 
         % normalize the map values to [0, 1]
         saliencyMap = saliencyMap - min(saliencyMap(:));

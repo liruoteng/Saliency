@@ -1,5 +1,5 @@
 %% Implement the Itti saliency algorithm with your improvements
-function saliencyMap = saliencyAlgorithmImprove(image)
+function saliencyMap = saliencyAlgorithmImprove(image, param)
     addpath('utils');
     
     %image = double(imread('COCO.jpg'));
@@ -83,11 +83,11 @@ function saliencyMap = saliencyAlgorithmImprove(image)
             % Intensity
             I_maps{i} = abs(imresize(Map.intensity{c}, sz, 'nearest') - imresize(Map.intensity{s}, sz, 'nearest'));
             % Color : R-1 G-2 B-3 Y-4
-            c_map = imresize(Map.color{c,1},sz,'nearest') - imresize(Map.color{c,2}, sz, 'nearest');
-            s_map = imresize(Map.color{s,2},sz,'nearest') - imresize(Map.color{s,1}, sz, 'nearest');
+            c_map = imresize(Map.color{c,1} - Map.color{c,2}, sz, 'nearest');
+            s_map = imresize(Map.color{s,2} - Map.color{s,1}, sz, 'nearest');
             RG_maps{i} = abs(c_map - s_map);
-            c_map = imresize(Map.color{c,3},sz,'nearest') - imresize(Map.color{c,4}, sz, 'nearest');
-            s_map = imresize(Map.color{s,4},sz,'nearest') - imresize(Map.color{s,3}, sz, 'nearest');
+            c_map = imresize(Map.color{c,3} - Map.color{c,4}, sz, 'nearest');
+            s_map = imresize(Map.color{s,4} - Map.color{s,3}, sz, 'nearest');
             BY_maps{i} = abs(c_map - s_map);
             % Orientation Maps
             orientation_maps{1, i} = abs(imresize(Map.orientation{c, 1},sz,'nearest') - imresize(Map.orientation{s, 1}, sz, 'nearest'));
@@ -106,12 +106,12 @@ function saliencyMap = saliencyAlgorithmImprove(image)
     conspicuity_orient45 = zeros(sz);
     conspicuity_orient90 = zeros(sz);
     conspicuity_orient135 = zeros(sz);
-    iters = 3;
+    iters = 2;
     % combine across-scale normalized feature maps 
     for level = 1: length(I_maps)
         conspicuity_intensity = conspicuity_intensity + maxNormalizeIterative(I_maps{i}, iters,[0,1]);
         conspicuity_color = conspicuity_color + ...
-            maxNormalizeIterative(RG_maps{i},5, [0,1]) + maxNormalizeIterative(BY_maps{i},iters, [0,1]); 
+            maxNormalizeIterative(RG_maps{i},iters, [0,1]) + maxNormalizeIterative(BY_maps{i},iters, [0,1]); 
         conspicuity_orient0 = conspicuity_orient0 + maxNormalizeIterative(orientation_maps{1,level},iters, [0,1]);
         conspicuity_orient45 = conspicuity_orient45 + maxNormalizeIterative(orientation_maps{2,level},iters, [0,1]);
         conspicuity_orient90 = conspicuity_orient90 + maxNormalizeIterative(orientation_maps{3,level}, iters,[0,1]);
@@ -125,14 +125,10 @@ function saliencyMap = saliencyAlgorithmImprove(image)
    
                           
     %% 4. linear combination
-    saliency_map = conspicuity_intensity/3 + conspicuity_color/6 + conspicuity_orientation/12;
-    saliency_map = maxNormalizeIterative(saliency_map, iters, [0,1]);
-    saliency_map = scale_normalize(saliency_map, [0,255]);
-    imshow(uint8(saliency_map));
-    Map = imresize(saliency_map,[height,width], 'bilinear');
-    imshow(uint8(Map));
-
-    if nargout == 1
-        saliencyMap = Map;
-    end;
+    saliency_map = maxNormalizeIterative(conspicuity_intensity, iters,[0,1]) * param(1)+ ...
+        maxNormalizeIterative(conspicuity_color, iters, [0,1]) * param(2) + ... 
+        maxNormalizeIterative(conspicuity_orientation, iters, [0,1]) * param(3);
+    gaussian_filter = fspecial('gaussian', 5,11);
+    
+    saliencyMap = imfilter(saliency_map, gaussian_filter);
 end

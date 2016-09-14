@@ -2,7 +2,6 @@
 function saliencyMap = saliencyAlgorithm(image)
     addpath('utils');
     
-    %image = double(imread('COCO.jpg'));
     image = double(image);
     [height, width, ~] = size(image);
     
@@ -10,7 +9,7 @@ function saliencyMap = saliencyAlgorithm(image)
     Map.original_image = image;
     Map.original_height = height;
     Map.original_width = width;
-    Map.bandwidth = 1;  % tunable, little effect
+    Map.bandwidth = 2;  % tunable, little effect
     Map.garbor_orientations = [0,45,90,135];
     Map.features = {'intensity', 'color', 'orientation'};
     % your code here
@@ -22,7 +21,7 @@ function saliencyMap = saliencyAlgorithm(image)
     blue_channel = image(:,:,3);
     
     % II.obtain intensity image and broadly-tuned color channels
-    I0 = (red_channel + green_channel + blue_channel) / 3;   % intensity
+    I0 = red_channel/3 + green_channel/3 + blue_channel/3;   % intensity
     R0 = red_channel - 0.5 * (green_channel + blue_channel);
     G0 = green_channel - 0.5 * (red_channel + blue_channel);
     B0 = blue_channel - 0.5 * (red_channel + green_channel);
@@ -57,7 +56,7 @@ function saliencyMap = saliencyAlgorithm(image)
         Map.orientation{i,2} = imfilter(I0, Map.garbor_filters(2));
         Map.orientation{i,3} = imfilter(I0, Map.garbor_filters(3));
         Map.orientation{i,4} = imfilter(I0, Map.garbor_filters(4));
-        % update
+        % update to next level
         I0 = impyramid(I0, 'reduce');
         R0 = impyramid(R0, 'reduce');
         G0 = impyramid(G0, 'reduce');
@@ -83,11 +82,11 @@ function saliencyMap = saliencyAlgorithm(image)
             % Intensity
             I_maps{i} = abs(imresize(Map.intensity{c}, sz, 'nearest') - imresize(Map.intensity{s}, sz, 'nearest'));
             % Color : R-1 G-2 B-3 Y-4
-            c_map = imresize(Map.color{c,1},sz,'nearest') - imresize(Map.color{c,2}, sz, 'nearest');
-            s_map = imresize(Map.color{s,2},sz,'nearest') - imresize(Map.color{s,1}, sz, 'nearest');
+            c_map = imresize(Map.color{c,1} - Map.color{c,2}, sz, 'nearest');
+            s_map = imresize(Map.color{s,2} - Map.color{s,1}, sz, 'nearest');
             RG_maps{i} = abs(c_map - s_map);
-            c_map = imresize(Map.color{c,3},sz,'nearest') - imresize(Map.color{c,4}, sz, 'nearest');
-            s_map = imresize(Map.color{s,4},sz,'nearest') - imresize(Map.color{s,3}, sz, 'nearest');
+            c_map = imresize(Map.color{c,3} - Map.color{c,4}, sz, 'nearest');
+            s_map = imresize(Map.color{s,4} - Map.color{s,3}, sz, 'nearest');
             BY_maps{i} = abs(c_map - s_map);
             % Orientation Maps
             orientation_maps{1, i} = abs(imresize(Map.orientation{c, 1},sz,'nearest') - imresize(Map.orientation{s, 1}, sz, 'nearest'));
@@ -108,29 +107,23 @@ function saliencyMap = saliencyAlgorithm(image)
     conspicuity_orient135 = zeros(sz);
     % combine across-scale normalized feature maps 
     for level = 1: length(I_maps)
-        conspicuity_intensity = conspicuity_intensity + local_maxima(I_maps{i}, [0,1]);
-        conspicuity_color = conspicuity_color + local_maxima(RG_maps{i}, [0,1]) + local_maxima(BY_maps{i}, [0,1]); 
-        conspicuity_orient0 = conspicuity_orient0 + local_maxima(orientation_maps{1,level}, [0,1]);
-        conspicuity_orient45 = conspicuity_orient45 + local_maxima(orientation_maps{2,level}, [0,1]);
-        conspicuity_orient90 = conspicuity_orient90 + local_maxima(orientation_maps{3,level}, [0,1]);
-        conspicuity_orient135 = conspicuity_orient135 + local_maxima(orientation_maps{4,level}, [0,1]);
+        conspicuity_intensity = conspicuity_intensity + local_maxima(I_maps{i}, [0,10]);
+        conspicuity_color = conspicuity_color + local_maxima(RG_maps{i}, [0,10]) + local_maxima(BY_maps{i}, [0,10]); 
+        conspicuity_orient0 = conspicuity_orient0 + local_maxima(orientation_maps{1,level}, [0,10]);
+        conspicuity_orient45 = conspicuity_orient45 + local_maxima(orientation_maps{2,level}, [0,10]);
+        conspicuity_orient90 = conspicuity_orient90 + local_maxima(orientation_maps{3,level}, [0,10]);
+        conspicuity_orient135 = conspicuity_orient135 + local_maxima(orientation_maps{4,level}, [0,10]);
     end
     % combine orientation of four directions
-    conspicuity_orientation = local_maxima(conspicuity_orient0, [0,1]) + ...
-                              local_maxima(conspicuity_orient45, [0,1]) + ...
-                              local_maxima(conspicuity_orient90, [0,1]) + ...
-                              local_maxima(conspicuity_orient135, [0,1]);
+    conspicuity_orientation = local_maxima(conspicuity_orient0, [0,10]) + ...
+                              local_maxima(conspicuity_orient45, [0,10]) + ...
+                              local_maxima(conspicuity_orient90, [0,10]) + ...
+                              local_maxima(conspicuity_orient135, [0,10]);
    
                           
     %% 4. linear combination
-    saliency_map = conspicuity_intensity/3 + conspicuity_color/6 + conspicuity_orientation/12;
-    saliency_map = local_maxima(saliency_map, [0,1]);
-    saliency_map = scale_normalize(saliency_map, [0,255]);
-    imshow(uint8(saliency_map));
-    Map = imresize(saliency_map,[height,width], 'bilinear');
-    imshow(uint8(Map));
-
-    if nargout == 1
-        saliencyMap = Map;
-    end;
+    saliency_map = local_maxima(conspicuity_intensity, [0,10])/3 + ...
+                   local_maxima(conspicuity_color,[0,10])/3 + ... 
+                   local_maxima(conspicuity_orientation, [0,10])/3;
+    saliencyMap = saliency_map;
 end
