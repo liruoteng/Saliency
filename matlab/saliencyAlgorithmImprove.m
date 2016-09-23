@@ -1,5 +1,5 @@
 %% Implement the Itti saliency algorithm with your improvements
-function saliencyMap = saliencyAlgorithmImprove(image, param)
+function saliencyMap = saliencyAlgorithmImprove(image)
     addpath('utils');
     
     %image = double(imread('COCO.jpg'));
@@ -109,26 +109,26 @@ function saliencyMap = saliencyAlgorithmImprove(image, param)
     iters = 2;
     % combine across-scale normalized feature maps 
     for level = 1: length(I_maps)
-        conspicuity_intensity = conspicuity_intensity + maxNormalizeIterative(I_maps{i}, iters,[0,1]);
+        conspicuity_intensity = conspicuity_intensity + differenceOfGaussian(I_maps{i}, iters,[0,10]);
         conspicuity_color = conspicuity_color + ...
-            maxNormalizeIterative(RG_maps{i},iters, [0,1]) + maxNormalizeIterative(BY_maps{i},iters, [0,1]); 
-        conspicuity_orient0 = conspicuity_orient0 + maxNormalizeIterative(orientation_maps{1,level},iters, [0,1]);
-        conspicuity_orient45 = conspicuity_orient45 + maxNormalizeIterative(orientation_maps{2,level},iters, [0,1]);
-        conspicuity_orient90 = conspicuity_orient90 + maxNormalizeIterative(orientation_maps{3,level}, iters,[0,1]);
-        conspicuity_orient135 = conspicuity_orient135 + maxNormalizeIterative(orientation_maps{4,level},iters, [0,1]);
+            differenceOfGaussian(RG_maps{i},iters, [0,10]) + differenceOfGaussian(BY_maps{i},iters, [0,10]); 
+        conspicuity_orient0 = conspicuity_orient0 + differenceOfGaussian(orientation_maps{1,level},iters, [0,10]);
+        conspicuity_orient45 = conspicuity_orient45 + differenceOfGaussian(orientation_maps{2,level},iters, [0,10]);
+        conspicuity_orient90 = conspicuity_orient90 + differenceOfGaussian(orientation_maps{3,level}, iters,[0,10]);
+        conspicuity_orient135 = conspicuity_orient135 + differenceOfGaussian(orientation_maps{4,level},iters, [0,10]);
     end
     % combine orientation of four directions
-    conspicuity_orientation = maxNormalizeIterative(conspicuity_orient0, iters,[0,1]) + ...
-                              maxNormalizeIterative(conspicuity_orient45, iters,[0,1]) + ...
-                              maxNormalizeIterative(conspicuity_orient90, iters,[0,1]) + ...
-                              maxNormalizeIterative(conspicuity_orient135, iters,[0,1]);
+    conspicuity_orientation = differenceOfGaussian(conspicuity_orient0, iters,[0,10]) + ...
+                              differenceOfGaussian(conspicuity_orient45, iters,[0,10]) + ...
+                              differenceOfGaussian(conspicuity_orient90, iters,[0,10]) + ...
+                              differenceOfGaussian(conspicuity_orient135, iters,[0,10]);
    
                           
     %% 4. linear combination
-    saliency_map = maxNormalizeIterative(conspicuity_intensity, iters,[0,1]) * param(1)+ ...
-        maxNormalizeIterative(conspicuity_color, iters, [0,1]) * param(2) + ... 
-        maxNormalizeIterative(conspicuity_orientation, iters, [0,1]) * param(3);
-    gaussian_filter = fspecial('gaussian', 5,11);
+    saliency_map = (conspicuity_intensity) * 0.25 + ...
+        (conspicuity_color) * 0.25 + ... 
+        (conspicuity_orientation) * 0.5;
+    gaussian_filter = fspecial('gaussian', 7,7);
     
     saliencyMap = imfilter(saliency_map, gaussian_filter);
 end

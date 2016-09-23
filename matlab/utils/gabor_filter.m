@@ -1,6 +1,16 @@
 function gf = gabor_filter(bw, theta, lambda, psi, gamma)
-
+% this function generate gabor filter kernel with corresponding parameters
+% as input. 
+%
+% INPUT: 
+%   bw: bandwidth
+%   theta: orientation
+%   
+% OUTPUT: 
+%   gf: gabor filter kernel
+%
 % if not provide advanced paramter sets
+
 if nargin < 3
     lambda = 4;
     psi = 0;

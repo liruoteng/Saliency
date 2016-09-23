@@ -1,4 +1,12 @@
 function result = local_maxima(image,range)
+% this function calculate the local maxima according to Itti'98 paper.
+%
+% INPUT: 
+%   image: input feature map
+%   range: normalization range (minimum, maximum)
+%
+% OUTPUT: 
+%   result: normalized feature map
 
 if isempty(range) == 1
     range = [0 10];

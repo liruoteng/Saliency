@@ -1,5 +1,12 @@
 %% Implement the Itti saliency algorithm with your improvements
 function saliencyMap = saliencyAlgorithm(image)
+% INPUT: 
+%   image: original input single image
+% OUTPUT: 
+%   saliencyMap = saliency map generated from input image. size is the 1/16
+%   of the original input image.
+%
+
     addpath('utils');
     
     image = double(image);

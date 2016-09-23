@@ -1,4 +1,12 @@
 function result = scale_normalize(image, range)
+% this function provide scaling operation on the input image
+% 
+% INPUT: 
+%   image: feature map
+%   range: normalization range (minimum, maximum)
+%
+% OUTPUT: 
+%   result: normalized feature map
 
 if isempty(range) == 1
     range = [0,1];    
