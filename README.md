@@ -7,9 +7,9 @@ Computing saliency map according to itti's '98 model
 
 ## 1. Files
 =================
-Go to ```matlab``` directory:
+Go to ```src``` directory:
 ```
-matlab/
+src//
  1. computeSaliencyMaps.m 
  2. evaluateSaliencyMaps.m
  3. saliencyAlgorithm.m
