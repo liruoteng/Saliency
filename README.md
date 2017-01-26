@@ -1,4 +1,4 @@
-# Saliency
+# Saliency Map Estimation
 Computing saliency map according to itti's '98 model
 
 ### Author: Ruoteng Li
@@ -7,19 +7,19 @@ Computing saliency map according to itti's '98 model
 
 ## 1. Files
 =================
-Go to matlab directory:
+Go to ```matlab``` directory:
+```
 matlab/
-1. computeSaliencyMaps.m 
-2. evaluateSaliencyMaps.m
-3. saliencyAlgorithm.m
-4. saliencyAlgorithmImprove.m
-5. utils/gabor_filter.m
-6. utils/differenceOfGaussian.m
-7. utils/local_maxima.m
-8. utils/scale_normalize.m
-9. utils/convolutional_separation.m
-
-
+ 1. computeSaliencyMaps.m 
+ 2. evaluateSaliencyMaps.m
+ 3. saliencyAlgorithm.m
+ 4. saliencyAlgorithmImprove.m
+ 5. utils/gabor_filter.m
+ 6. utils/differenceOfGaussian.m
+ 7. utils/local_maxima.m
+ 8. utils/scale_normalize.m
+ 9. utils/convolutional_separation.m
+```
 ## 2. Run
 =================
 
