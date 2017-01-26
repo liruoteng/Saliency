@@ -24,9 +24,13 @@ matlab/
 =================
 
 1. To run baseline model, just type
+   ```
    >> computeSaliencyMaps 
+   ```
 
 2. To run improved model, please change line 17 in computeSaliencyMaps.m to
    saliencyMap = saliencyAlgorithmImprove(image)
    and run: 
+   ```
    >> computeSaliencyMaps
+   ```
